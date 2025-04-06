@@ -1,0 +1,10 @@
+# Python
+__pycache__/
+*.pyc
+
+# Secrets
+.env
+reddit_alerts.db
+
+# Streamlit secrets
+.streamlit/secrets.toml
