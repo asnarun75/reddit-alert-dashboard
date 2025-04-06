@@ -2,13 +2,10 @@ import streamlit as st
 import pandas as pd
 import requests
 import datetime
-import os
-from dotenv import load_dotenv
 
-# ===== INITIAL SETUP =====
-load_dotenv()
-SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+# ===== LOAD SUPABASE SECRETS FROM STREAMLIT CLOUD =====
+SUPABASE_URL = st.secrets["SUPABASE_URL"]
+SUPABASE_KEY = st.secrets["SUPABASE_KEY"]
 
 st.set_page_config(page_title="Reddit Sentiment Alerts", layout="wide")
 st.title("📊 Reddit Sentiment Alert Dashboard")
@@ -19,7 +16,7 @@ def load_data():
         "apikey": SUPABASE_KEY,
         "Authorization": f"Bearer {SUPABASE_KEY}"
     }
-    today = datetime.datetime.utcnow().date()
+    today = datetime.datetime.now(datetime.timezone.utc).date()
     today_iso = today.isoformat()
     url = f"{SUPABASE_URL}/rest/v1/alerts?select=*&created_utc=gte.{today_iso}T00:00:00Z&order=created_utc.desc"
     response = requests.get(url, headers=headers)
