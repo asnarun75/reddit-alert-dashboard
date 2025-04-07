@@ -2,6 +2,7 @@ streamlit
 pandas
 requests
 pytz
-matplotlib
 seaborn
+matplotlib
 openpyxl
+streamlit-autorefresh

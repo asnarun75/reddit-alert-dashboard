@@ -3,10 +3,11 @@ import pandas as pd
 import requests
 import datetime
 import pytz
-import time
 import json
 import seaborn as sns
 import matplotlib.pyplot as plt
+from io import BytesIO
+from streamlit_autorefresh import st_autorefresh
 
 # ===== LOAD SUPABASE SECRETS FROM STREAMLIT CLOUD =====
 SUPABASE_URL = st.secrets["SUPABASE_URL"]
@@ -47,12 +48,10 @@ else:
 
 # Refresh interval
 refresh_interval = st.sidebar.selectbox("🔁 Auto-refresh every...", options=[0, 30, 60, 120, 300], format_func=lambda x: f"{x} seconds" if x else "Off")
-last_refresh = datetime.datetime.now(pytz.timezone('America/New_York')).strftime('%Y-%m-%d %I:%M:%S %p %Z')
-
-# ===== AUTO-REFRESH =====
 if refresh_interval:
-    time.sleep(refresh_interval)
-    st.experimental_rerun()
+    st_autorefresh(interval=refresh_interval * 1000, limit=None, key="auto-refresh")
+
+last_refresh = datetime.datetime.now(pytz.timezone('America/New_York')).strftime('%Y-%m-%d %I:%M:%S %p %Z')
 
 # ===== LOAD AND FILTER DATA =====
 data = load_data(start_date.isoformat(), end_date.isoformat())
@@ -103,8 +102,10 @@ if not data.empty:
     csv = filtered_data.to_csv(index=False)
     st.download_button("📥 Download CSV", csv, "filtered_reddit_alerts.csv", "text/csv")
 
-    excel_data = filtered_data.to_excel(index=False, engine='openpyxl')
-    st.download_button("📥 Download Excel", excel_data, "filtered_reddit_alerts.xlsx")
+    excel_buffer = BytesIO()
+    filtered_data.to_excel(excel_buffer, index=False, engine='openpyxl')
+    excel_buffer.seek(0)
+    st.download_button("📥 Download Excel", excel_buffer, "filtered_reddit_alerts.xlsx", mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 
     json_data = filtered_data.to_json(orient="records")
     st.download_button("📥 Download JSON", json_data, "filtered_reddit_alerts.json")
@@ -141,3 +142,4 @@ if not data.empty:
     st.success(f"🆕 New alerts today: {len(new_alerts)}")
 else:
     st.warning("No data available for the selected date range.")
+
