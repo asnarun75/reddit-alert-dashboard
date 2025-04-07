@@ -73,6 +73,7 @@ def map_keyword_to_category(keyword):
 
 if not data.empty:
     data['category'] = data['matched_keyword'].apply(map_keyword_to_category)
+    data['created_utc'] = data['created_utc'].dt.tz_localize(None)  # make timezone naive for Excel export
 
     sentiment_filter = st.sidebar.multiselect("Sentiment", options=data['sentiment'].unique(), default=list(data['sentiment'].unique()))
     subreddit_filter = st.sidebar.multiselect("Subreddit", options=sorted(data['subreddit'].unique()), default=list(data['subreddit'].unique()))
