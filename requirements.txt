@@ -1,6 +1,7 @@
 streamlit
 pandas
 requests
-python-dotenv
-nltk
-praw
+pytz
+matplotlib
+seaborn
+openpyxl
