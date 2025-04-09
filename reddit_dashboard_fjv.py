@@ -27,11 +27,19 @@ def load_data(start_date, end_date):
 
     if response.status_code == 200:
         df = pd.DataFrame(response.json())
+
+        if df.empty:
+            st.warning("✅ Supabase responded but returned 0 records.")
+            return df
+
+        st.subheader("🧪 Debug: Returned Columns from Supabase")
+        st.write(df.columns.tolist())
+        st.write(df.head())
+
         if 'created_utc' not in df.columns:
             st.error("⚠️ 'created_utc' field is missing in the Supabase response!")
-            st.write("Supabase response preview:")
-            st.write(df.head())
             return pd.DataFrame()
+
         df['created_utc'] = pd.to_datetime(df['created_utc']).dt.tz_localize('UTC').dt.tz_convert('America/New_York')
         return df
     else:
