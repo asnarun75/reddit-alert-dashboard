@@ -11,7 +11,7 @@ from streamlit_autorefresh import st_autorefresh
 
 # ===== LOAD SUPABASE SECRETS FOR FJV =====
 SUPABASE_URL = st.secrets["SUPABASE_URL"]
-SUPABASE_KEY = st.secrets["SUPABASE_JV"]  # Use alternate key for FJV
+SUPABASE_KEY = st.secrets["SUPABASE_KEY"]  # Use alternate key for FJV
 
 st.set_page_config(page_title="Reddit FJV Alerts", layout="wide")
 st.title("📊 FJV Reddit Sentiment Alert Dashboard")
