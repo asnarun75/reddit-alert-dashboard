@@ -9,19 +9,6 @@ mysql_database = 'BHJCApp'
 mysql_user = 'gmanadmin'
 mysql_password = 'Jdf^hje*34'
 
-# Function to get the public IP address
-def get_public_ip():
-    response = requests.get('https://api64.ipify.org?format=json')
-    return response.json().get('ip')
-
-# Streamlit app layout
-st.title("Get My Public IP")
-ip_address = get_public_ip()
-st.write(f"Your public IP address is: **{ip_address}**")
-test_mysql_connection(mysql_host, mysql_database, mysql_user, mysql_password)
-
-
-
 def test_mysql_connection(host, database, user, password):
     try:
         # Establish the connection
@@ -40,6 +27,21 @@ def test_mysql_connection(host, database, user, password):
             connection.close()
     except Error as e:
         print("Error while connecting to MySQL", e)
+
+# Function to get the public IP address
+def get_public_ip():
+    response = requests.get('https://api64.ipify.org?format=json')
+    return response.json().get('ip')
+
+# Streamlit app layout
+st.title("Get My Public IP")
+ip_address = get_public_ip()
+st.write(f"Your public IP address is: **{ip_address}**")
+test_mysql_connection(mysql_host, mysql_database, mysql_user, mysql_password)
+
+
+
+
 
 
 
