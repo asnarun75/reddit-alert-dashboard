@@ -63,6 +63,8 @@ if refresh_interval:
 last_refresh = datetime.datetime.now(pytz.timezone('America/New_York')).strftime('%Y-%m-%d %I:%M:%S %p %Z')
 
 data = load_data(start_date.isoformat(), end_date.isoformat())
+st.write("📦 Raw DataFrame Preview:")
+st.dataframe(data.head())
 st.sidebar.header("🔍 Filter Alerts")
 
 CATEGORY_MAP = {
