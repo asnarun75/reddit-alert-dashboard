@@ -17,9 +17,11 @@ MYSQL_PASSWORD = st.secrets["MYSQL_PASSWORD"]
 MYSQL_DATABASE = st.secrets["MYSQL_DATABASE"]
 
 def load_data(start_date, end_date):
+   def load_data(start_date, end_date):
     conn = None
     cursor = None
     try:
+        st.info(f"⏳ Connecting to DB at {MYSQL_HOST}")
         conn = mysql.connector.connect(
             host=MYSQL_HOST,
             user=MYSQL_USER,
@@ -32,14 +34,19 @@ def load_data(start_date, end_date):
             "WHERE timestamp BETWEEN %s AND %s "
             "ORDER BY timestamp DESC"
         )
+        st.code(query)
+        st.write(f"Query params: {start_date} 00:00:00 to {end_date} 23:59:59")
         cursor.execute(query, (f"{start_date} 00:00:00", f"{end_date} 23:59:59"))
-        return pd.DataFrame(cursor.fetchall())
+        rows = cursor.fetchall()
+        st.success(f"✅ Retrieved {len(rows)} rows.")
+        return pd.DataFrame(rows)
     except mysql.connector.Error as err:
-        st.error(f"MySQL Error: {err}")
+        st.error(f"❌ MySQL Error: {err}")
         return pd.DataFrame()
     finally:
-        if conn.is_connected():
+        if cursor:
             cursor.close()
+        if conn and conn.is_connected():
             conn.close()
 
 st.set_page_config(page_title="Reddit Sentiment Alerts", layout="wide")
@@ -63,7 +70,7 @@ if refresh_interval:
 last_refresh = datetime.datetime.now(pytz.timezone('America/New_York')).strftime('%Y-%m-%d %I:%M:%S %p %Z')
 
 data = load_data(start_date.isoformat(), end_date.isoformat())
-st.write("📦 Raw DataFrame Preview:")
+st.write("📦 Data Preview")
 st.dataframe(data.head())
 st.sidebar.header("🔍 Filter Alerts")
 
