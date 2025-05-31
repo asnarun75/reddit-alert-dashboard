@@ -17,6 +17,7 @@ MYSQL_PASSWORD = st.secrets["MYSQL_PASSWORD"]
 MYSQL_DATABASE = st.secrets["MYSQL_DATABASE"]
 
 def load_data(start_date, end_date):
+    conn = None
     try:
         conn = mysql.connector.connect(
             host=MYSQL_HOST,
