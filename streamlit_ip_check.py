@@ -18,6 +18,8 @@ def get_public_ip():
 st.title("Get My Public IP")
 ip_address = get_public_ip()
 st.write(f"Your public IP address is: **{ip_address}**")
+test_mysql_connection(mysql_host, mysql_database, mysql_user, mysql_password)
+
 
 
 def test_mysql_connection(host, database, user, password):
@@ -41,4 +43,3 @@ def test_mysql_connection(host, database, user, password):
 
 
 
-test_mysql_connection(mysql_host, mysql_database, mysql_user, mysql_password)
