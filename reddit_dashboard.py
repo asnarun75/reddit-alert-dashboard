@@ -44,10 +44,13 @@ def load_data(start_date, end_date):
         st.error(f"❌ MySQL Error: {err}")
         return pd.DataFrame()
     finally:
-        if cursor:
-            cursor.close()
-        if conn and conn.is_connected():
-            conn.close()
+        try:
+            if cursor:
+                cursor.close()
+            if conn and conn.is_connected():
+                conn.close()
+        except Exception as cleanup_err:
+            st.warning(f"⚠️ Cleanup error: {cleanup_err}")
 
 st.set_page_config(page_title="Reddit Sentiment Alerts", layout="wide")
 st.title("📊 Reddit Sentiment Alert Dashboard")
