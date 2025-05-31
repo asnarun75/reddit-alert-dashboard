@@ -6,3 +6,4 @@ seaborn
 matplotlib
 openpyxl
 streamlit-autorefresh
+mysql-connector-python
