@@ -1,44 +1,52 @@
+
+import mysql.connector
+import os
+
 import streamlit as st
 import pandas as pd
-import requests
 import datetime
 import pytz
-import json
 import seaborn as sns
 import matplotlib.pyplot as plt
 from io import BytesIO
 from streamlit_autorefresh import st_autorefresh
 
-# ===== LOAD SUPABASE SECRETS FROM STREAMLIT CLOUD =====
-SUPABASE_URL = st.secrets["SUPABASE_URL"]
-SUPABASE_KEY = st.secrets["SUPABASE_KEY"]
+MYSQL_HOST = st.secrets["MYSQL_HOST"]
+MYSQL_USER = st.secrets["MYSQL_USER"]
+MYSQL_PASSWORD = st.secrets["MYSQL_PASSWORD"]
+MYSQL_DATABASE = st.secrets["MYSQL_DATABASE"]
+
+def load_data(start_date, end_date):
+    try:
+        conn = mysql.connector.connect(
+            host=MYSQL_HOST,
+            user=MYSQL_USER,
+            password=MYSQL_PASSWORD,
+            database=MYSQL_DATABASE
+        )
+        cursor = conn.cursor(dictionary=True)
+        query = (
+            "SELECT * FROM alerts "
+            "WHERE timestamp BETWEEN %s AND %s "
+            "ORDER BY timestamp DESC"
+        )
+        cursor.execute(query, (f"{start_date} 00:00:00", f"{end_date} 23:59:59"))
+        return pd.DataFrame(cursor.fetchall())
+    except mysql.connector.Error as err:
+        st.error(f"MySQL Error: {err}")
+        return pd.DataFrame()
+    finally:
+        if conn.is_connected():
+            cursor.close()
+            conn.close()
 
 st.set_page_config(page_title="Reddit Sentiment Alerts", layout="wide")
 st.title("📊 Reddit Sentiment Alert Dashboard")
 
-# ===== FUNCTION TO LOAD DATA =====
-def load_data(start_date, end_date):
-    headers = {
-        "apikey": SUPABASE_KEY,
-        "Authorization": f"Bearer {SUPABASE_KEY}"
-    }
-    url = f"{SUPABASE_URL}/rest/v1/alerts?select=*&created_utc=gte.{start_date}T00:00:00Z&created_utc=lte.{end_date}T23:59:59Z&order=created_utc.desc"
-    response = requests.get(url, headers=headers)
-
-    if response.status_code == 200:
-        df = pd.DataFrame(response.json())
-        df['created_utc'] = pd.to_datetime(df['created_utc']).dt.tz_localize('UTC').dt.tz_convert('America/New_York')
-        return df
-    else:
-        st.error("Failed to load data from Supabase")
-        return pd.DataFrame()
-
-# ===== DATE RANGE AND REFRESH INTERVAL =====
 st.sidebar.header("📅 Date Range")
 today = datetime.date.today()
 def_start = today - datetime.timedelta(days=7)
 
-# Today only filter
 today_only = st.sidebar.checkbox("🔘 Today Only", value=False)
 if today_only:
     start_date = end_date = today
@@ -46,18 +54,15 @@ else:
     start_date = st.sidebar.date_input("Start Date", value=def_start, max_value=today)
     end_date = st.sidebar.date_input("End Date", value=today, min_value=start_date, max_value=today)
 
-# Refresh interval
 refresh_interval = st.sidebar.selectbox("🔁 Auto-refresh every...", options=[0, 30, 60, 120, 300], format_func=lambda x: f"{x} seconds" if x else "Off")
 if refresh_interval:
     st_autorefresh(interval=refresh_interval * 1000, limit=None, key="auto-refresh")
 
 last_refresh = datetime.datetime.now(pytz.timezone('America/New_York')).strftime('%Y-%m-%d %I:%M:%S %p %Z')
 
-# ===== LOAD AND FILTER DATA =====
 data = load_data(start_date.isoformat(), end_date.isoformat())
 st.sidebar.header("🔍 Filter Alerts")
 
-# Keyword grouping/category
 CATEGORY_MAP = {
     'mindfulness': ['meditation', 'present moment', 'awareness', 'clarity', 'equanimity'],
     'spirituality': ['art of iiving', 'Gurudev', 'Sri Sri Ravi Shankar'],
@@ -72,8 +77,10 @@ def map_keyword_to_category(keyword):
     return 'other'
 
 if not data.empty:
+    data['timestamp'] = pd.to_datetime(data['timestamp'])
+    data['created_utc'] = data['timestamp'].dt.tz_localize('UTC').dt.tz_convert('America/New_York')
     data['category'] = data['matched_keyword'].apply(map_keyword_to_category)
-    data['created_utc'] = data['created_utc'].dt.tz_localize(None)  # make timezone naive for Excel export
+    data['created_utc'] = data['created_utc'].dt.tz_localize(None)
 
     sentiment_filter = st.sidebar.multiselect("Sentiment", options=data['sentiment'].unique(), default=list(data['sentiment'].unique()))
     subreddit_filter = st.sidebar.multiselect("Subreddit", options=sorted(data['subreddit'].unique()), default=list(data['subreddit'].unique()))
@@ -111,7 +118,6 @@ if not data.empty:
     json_data = filtered_data.to_json(orient="records")
     st.download_button("📥 Download JSON", json_data, "filtered_reddit_alerts.json")
 
-    # ===== Visualizations =====
     st.markdown("### 🔥 Keyword-Sentiment Heatmap")
     heatmap_data = filtered_data.groupby(['matched_keyword', 'sentiment']).size().unstack(fill_value=0)
     if display_mode == "Percentage":
@@ -143,4 +149,3 @@ if not data.empty:
     st.success(f"🆕 New alerts today: {len(new_alerts)}")
 else:
     st.warning("No data available for the selected date range.")
-
