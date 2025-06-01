@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Reddit Alert Results</title>
+</head>
+<body>
+  <h2>Filtered Reddit Alerts</h2>
+
+  <a href="/download/csv">Download CSV</a> |
+  <a href="/download/excel">Download Excel</a> |
+  <a href="/download/json">Download JSON</a><br><br>
+
+  <img src="{{ heatmap }}" alt="Heatmap" style="max-width: 100%;"><br><br>
+
+  <table border="1">
+    <tr>
+      {% for col in data.columns %}
+        <th>{{ col }}</th>
+      {% endfor %}
+    </tr>
+    {% for row in data.values %}
+      <tr>
+        {% for val in row %}
+          <td>{{ val }}</td>
+        {% endfor %}
+      </tr>
+    {% endfor %}
+  </table>
+</body>
+</html>
