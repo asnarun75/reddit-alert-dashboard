@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Reddit Alert Dashboard</title>
+</head>
+<body>
+  <h2>Reddit Sentiment Alert Dashboard</h2>
+  <form method="POST">
+    Start Date: <input type="date" name="start_date" value="{{ default_start }}"><br>
+    End Date: <input type="date" name="end_date" value="{{ today }}"><br><br>
+
+    <input type="submit" value="Get Alerts">
+  </form>
+</body>
+</html>
