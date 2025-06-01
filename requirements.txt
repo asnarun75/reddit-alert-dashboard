@@ -7,3 +7,5 @@ matplotlib
 openpyxl
 streamlit-autorefresh
 mysql-connector-python
+flask
+python-dotenv
