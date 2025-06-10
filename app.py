@@ -38,7 +38,22 @@ def map_keyword_to_category(keyword):
             return category
     return 'other'
 
+def is_valid_date_format(date_string):
+    if not date_string: # Allow empty strings, get_data will handle them
+        return True
+    try:
+        datetime.datetime.strptime(date_string, '%Y-%m-%d')
+        return True
+    except ValueError:
+        return False
+
 def get_data(start_date, end_date):
+    # Handle empty or None date strings
+    if not start_date: # Checks for None or empty string
+        start_date = (datetime.date.today() - datetime.timedelta(days=7)).strftime('%Y-%m-%d')
+    if not end_date: # Checks for None or empty string
+        end_date = datetime.date.today().strftime('%Y-%m-%d')
+
     try:
         conn = mysql.connector.connect(
             host=MYSQL_HOST,
@@ -74,6 +89,16 @@ def index():
     if request.method == 'POST':
         start_date = request.form.get('start_date')
         end_date = request.form.get('end_date')
+
+        if not is_valid_date_format(start_date) or not is_valid_date_format(end_date):
+            # Get today and default_start for rendering index.html with an error
+            today = datetime.date.today()
+            default_start = today - datetime.timedelta(days=7)
+            return render_template('index.html',
+                                   error_message="Invalid date format. Please use YYYY-MM-DD.",
+                                   today=today,
+                                   default_start=default_start)
+
         data = get_data(start_date, end_date)
 
         filters = {

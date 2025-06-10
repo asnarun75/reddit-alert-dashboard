@@ -1,15 +1,21 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Reddit Alert Dashboard</title>
+    <title>Test Index</title>
 </head>
 <body>
-  <h2>Reddit Sentiment Alert Dashboard</h2>
-  <form method="POST">
-    Start Date: <input type="date" name="start_date" value="{{ default_start }}"><br>
-    End Date: <input type="date" name="end_date" value="{{ today }}"><br><br>
-
-    <input type="submit" value="Get Alerts">
-  </form>
+    <h1>Index Page</h1>
+    {% if error_message %}
+        <p style="color: red;">{{ error_message }}</p>
+    {% endif %}
+    <form method="POST">
+        <label for="start_date">Start Date:</label>
+        <input type="text" id="start_date" name="start_date" value="{{ default_start.strftime('%Y-%m-%d') if default_start else '' }}">
+        <br>
+        <label for="end_date">End Date:</label>
+        <input type="text" id="end_date" name="end_date" value="{{ today.strftime('%Y-%m-%d') if today else '' }}">
+        <br>
+        <button type="submit">Submit</button>
+    </form>
 </body>
 </html>
